@@ -25,6 +25,6 @@ d) <code>localhost:8080/killjob</code> - Kills the Spark Job given by the parame
 
 Example: <code>curl -D - localhost:8080/killjob?id=1</code>
 
-e) <code>localhost:8080/runjob</code> - Runs the job specified by the unique identified <code>id</code> with the particular parameters passed in the url.
+e) <code>localhost:8080/runjob</code> - Runs the job specified by the unique identifier <code>id</code> with the particular parameters passed in the url.
 
 Example: <code>curl -D - "localhost:8080/runjob?id=pi&n=100000000"</code>
