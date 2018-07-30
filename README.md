@@ -4,8 +4,8 @@
 
 Requirements:
 - JDK 1.8
-- sbt
-- IntelliJ IDEA
+- gradle
+- IntelliJ IDEA (Optional)
 
 1) Open the Project with IntellJ, build and run the Main class SparkServerMain.
 
