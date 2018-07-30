@@ -5,7 +5,7 @@ import org.apache.spark.sql.SparkSession
 
 import scala.collection.mutable.HashMap
 
-class SparkServerImpl extends SparkServer {
+object SparkServerImpl extends SparkServer {
 
   private var serverStatus = SparkServer.Status.CREATED
   private var sparkServerContext: SparkServerContext = null
