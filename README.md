@@ -27,4 +27,4 @@ Example: <code>curl -D - localhost:8080/killjob?id=1</code>
 
 e) <code>localhost:8080/pi</code> - Runs a monte carlo simulation of <code>n</code> iterations, to approximate the value of PI
 
-Example: <code>curl -D - localhost:8080/pi?id=100000000</code>
+Example: <code>curl -D - localhost:8080/pi?n=100000000</code>
