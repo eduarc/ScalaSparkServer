@@ -8,7 +8,7 @@ import com.twitter.util.Future
 /**
   *
   */
-class SparkServerService extends Service[http.Request, http.Response] {
+class SparkServerService(val sparkServer : SparkServer) extends Service[http.Request, http.Response] {
 
   /**
     *
@@ -46,9 +46,9 @@ class SparkServerService extends Service[http.Request, http.Response] {
   def doInit(request : http.Request) : Future[http.Response] = {
 
     val sparkConf = getParams(request)
-    SparkServerImpl.init(sparkConf)
+    sparkServer.init(sparkConf)
       // Register other Jobs Here!
-    SparkServerImpl.registerJob("pi", new MonteCarloPIBuilder)
+    sparkServer.registerJob("pi", new MonteCarloPIBuilder)
     Future.value(http.Response(request.version, http.Status.Ok))
   }
 
@@ -59,14 +59,14 @@ class SparkServerService extends Service[http.Request, http.Response] {
     */
   def doShutdown(request : http.Request) : Future[http.Response] = {
 
-    SparkServerImpl.shutdown()
+    sparkServer.shutdown()
     Future.value(http.Response(request.version, http.Status.Ok))
   }
 
   def doKillJob(request : http.Request) : Future[http.Response] = {
 
     val jobId = request.getParam("id")
-    SparkServerImpl.killJob(jobId.toInt)
+    sparkServer.killJob(jobId.toInt)
     Future.value(http.Response(request.version, http.Status.Ok))
   }
 
@@ -75,7 +75,7 @@ class SparkServerService extends Service[http.Request, http.Response] {
     val jobId = request.getParam("id").toInt
     var str = ""
 
-    for (j <- SparkServerImpl.queryJob(jobId)) {
+    for (j <- sparkServer.queryJob(jobId)) {
       str += s"\tID: ${j.jobId()} Status: ${j.status()}\n"
     }
     val response = http.Response(request.version, http.Status.Ok)
@@ -92,9 +92,9 @@ class SparkServerService extends Service[http.Request, http.Response] {
 
     val jobUniqueName = request.getParam("id").toString
     val params = getParams(request)
-    val jobId = SparkServerImpl.createJob(jobUniqueName, None, params)
+    val jobId = sparkServer.createJob(jobUniqueName, None, params)
     val response = http.Response(request.version, http.Status.Ok)
-    response.write("Server Job ID: " + jobId)
+    response.write(s"Server Job ID: $jobId")
     Future.value(response)
   }
 }

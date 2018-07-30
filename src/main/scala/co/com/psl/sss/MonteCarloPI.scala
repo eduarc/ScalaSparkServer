@@ -18,9 +18,9 @@ class MonteCarloPI(val numPoints : Int) extends SparkJob {
       })
       .reduce((a, b) => a+b)
 
-    val approxPI = positivePoints/numPoints.toFloat*4.0
+    val approxPI = 4.0*positivePoints/numPoints
     println(approxPI)
   }
 
-  override def name(): String = "PI"
+  override def name(): String = "Monte Carlo PI"
 }
