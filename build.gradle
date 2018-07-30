@@ -1,0 +1,50 @@
+plugins {
+    id 'scala'
+    id 'idea'
+}
+
+group 'co.com.psl.sss'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile group : 'org.scala-lang', name : 'scala-library', version : '2.11.12'
+    compile group : 'org.scala-lang', name : 'scala-reflect', version : '2.11.12'
+    compile group : 'org.scala-lang', name : 'scala-compiler', version : '2.11.12'
+
+    compile group : 'org.apache.spark', name : 'spark-core_2.11', version : '2.3.0'
+    compile group : 'org.apache.spark', name : 'spark-sql_2.11', version : '2.3.0'
+    compile group : 'org.apache.spark', name : 'spark-mllib_2.11', version : '2.3.0'
+    compile group : 'org.apache.spark', name : 'spark-launcher_2.11', version : '2.3.0'
+    compile group : 'org.apache.spark', name : 'spark-catalyst_2.11', version : '2.3.0'
+
+    compile group: 'com.twitter', name: 'finagle-http_2.11', version: '18.7.0'
+    compile group: 'io-netty', name: 'netty-all_2.11', version: '4.1.17.Final'
+
+    testCompile group: 'org.scalatest', name: 'scalatest_2.11', version: '3.0.5'
+}
+
+jar {
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+        configurations.runtime.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    manifest {
+        attributes 'Main-Class': 'SparkServerMain'
+    }
+    zip64 true
+}
+
+task run(type: JavaExec, dependsOn: classes) {
+    main = 'SparkServerMain'
+}
