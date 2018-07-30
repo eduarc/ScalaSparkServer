@@ -42,30 +42,30 @@ trait SparkServer {
     * @param builder
     * @return
     */
-  def registerJob(classType : Class[_], builder: SparkJobBuilder) : SparkServer
+  def registerJob(jobUniqueName : String, builder : SparkJobBuilder) : SparkServer
 
   /**
     *
-    * @param classType
+    * @param jobUniqueName
     * @param configs
     * @param args
     * @return
     */
-  def createJob(classType : Class[_],
+  def createJob(jobUniqueName : String,
                 configs : Iterable[(String, String)],
                 args : Iterable[(String, String)]): Int
 
   /**
     *
-    * @param job_ID
+    * @param jobId
     * @return
     */
-  def killJob(job_ID : Int) : SparkServer
+  def killJob(jobId : Int) : SparkServer
 
   /**
     *
-    * @param job_ID
+    * @param jobId
     * @return
     */
-  def queryJob(job_ID : Int) : Seq[SparkJobInfo]
+  def queryJob(jobId : Int) : Seq[SparkJobInfo]
 }

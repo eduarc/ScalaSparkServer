@@ -15,7 +15,7 @@ trait SparkJob {
 
   /**
     *
-    * @param spark_session
+    * @param sparkSession
     */
-  def main(spark_session : SparkSession) : Unit
+  def main(sparkSession : SparkSession) : Unit
 }

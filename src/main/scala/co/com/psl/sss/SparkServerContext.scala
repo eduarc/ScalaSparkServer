@@ -11,16 +11,16 @@ trait SparkServerContext {
   /**
     *
     */
-  val spark_config : SparkConf
+  val sparkConfig : SparkConf
 
   /**
     *
     */
-  val spark_session : SparkSession
+  val sparkSession : SparkSession
 
   /**
     *
     */
-  val spark_context : SparkContext
+  val sparkContext : SparkContext
 
 }

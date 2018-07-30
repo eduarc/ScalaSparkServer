@@ -3,12 +3,7 @@ package co.com.psl.sss
 /**
   *
   */
-class MonteCarloPIBuilder extends SparkJobBuilder {
-
-  /**
-    *
-    */
-  var num_points : Int = 0
+case class MonteCarloPIBuilder(var numPoints : Int = 0) extends SparkJobBuilder {
 
   /**
     *
@@ -16,7 +11,7 @@ class MonteCarloPIBuilder extends SparkJobBuilder {
     * @return
     */
   override def configs(configs: Iterable[(String, String)]): SparkJobBuilder = {
-    this
+    this.copy()
   }
 
   /**
@@ -26,12 +21,13 @@ class MonteCarloPIBuilder extends SparkJobBuilder {
     */
   override def params(args: Iterable[(String, String)]): SparkJobBuilder = {
 
-    for (param <- args) param match {
-      case ("n", _) => {
-        num_points = param._2.toInt
+    for (param <- args) param._1 match {
+      case "n" => {
+        numPoints = param._2.toInt
       }
+      case _ => // Do nothing with extra parameters!
     }
-    this
+    this.copy()
   }
 
   /**
@@ -39,6 +35,6 @@ class MonteCarloPIBuilder extends SparkJobBuilder {
     * @return
     */
   override def build(): SparkJob = {
-    new MonteCarloPI(num_points)
+    new MonteCarloPI(numPoints)
   }
 }

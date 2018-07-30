@@ -17,8 +17,8 @@ class SparkServerService extends Service[http.Request, http.Response] {
     */
   def getParams(request : http.Request) : Seq[(String, String)] = {
 
-    for (param_name <- request.getParamNames().asScala.toSeq)
-      yield (param_name, request.getParam(param_name))
+    for (paramName <- request.getParamNames().asScala.toSeq)
+      yield (paramName, request.getParam(paramName))
   }
 
   /**
@@ -29,11 +29,11 @@ class SparkServerService extends Service[http.Request, http.Response] {
   override def apply(request: http.Request): Future[http.Response] = {
 
     request.path match {
-      case "/init" => processInit(request)
-      case "/shutdown" => processShutdown(request)
-      case "/killjob" => processKillJob(request)
-      case "/queryjob" => processQueryJob(request)
-      case "/pi" => processPI(request)
+      case "/init" => doInit(request)
+      case "/shutdown" => doShutdown(request)
+      case "/killjob" => doKillJob(request)
+      case "/queryjob" => doQueryJob(request)
+      case "/runjob" => doRunJob(request)
       case _ => Future.value(http.Response(request.version, http.Status.NotFound))
     }
   }
@@ -43,12 +43,12 @@ class SparkServerService extends Service[http.Request, http.Response] {
     * @param request
     * @return
     */
-  def processInit(request : http.Request) : Future[http.Response] = {
+  def doInit(request : http.Request) : Future[http.Response] = {
 
-    val spark_conf = getParams(request)
-    SparkServerImpl.init(spark_conf)
+    val sparkConf = getParams(request)
+    SparkServerImpl.init(sparkConf)
       // Register other Jobs Here!
-    SparkServerImpl.registerJob(classOf[MonteCarloPI], new MonteCarloPIBuilder)
+    SparkServerImpl.registerJob("pi", new MonteCarloPIBuilder)
     Future.value(http.Response(request.version, http.Status.Ok))
   }
 
@@ -57,29 +57,29 @@ class SparkServerService extends Service[http.Request, http.Response] {
     * @param request
     * @return
     */
-  def processShutdown(request : http.Request) : Future[http.Response] = {
+  def doShutdown(request : http.Request) : Future[http.Response] = {
 
     SparkServerImpl.shutdown()
     Future.value(http.Response(request.version, http.Status.Ok))
   }
 
-  def processKillJob(request : http.Request) : Future[http.Response] = {
+  def doKillJob(request : http.Request) : Future[http.Response] = {
 
-    val job_id = request.getParam("id")
-    SparkServerImpl.killJob(job_id.toInt)
+    val jobId = request.getParam("id")
+    SparkServerImpl.killJob(jobId.toInt)
     Future.value(http.Response(request.version, http.Status.Ok))
   }
 
-  def processQueryJob(request : http.Request) : Future[http.Response] = {
+  def doQueryJob(request : http.Request) : Future[http.Response] = {
 
-    val job_id = request.getParam("id").toInt
+    val jobId = request.getParam("id").toInt
     var str = ""
 
-    for (j <- SparkServerImpl.queryJob(job_id)) {
-      str = "\tID: "+str+j.jobId()+" Status: "+j.status().toString+"\n"
+    for (j <- SparkServerImpl.queryJob(jobId)) {
+      str += s"\tID: ${j.jobId()} Status: ${j.status()}\n"
     }
     val response = http.Response(request.version, http.Status.Ok)
-    response.write("Server Job ID: " + job_id + "\n\tNative Spark Jobs: \n"+str)
+    response.write(s"Server Job ID: $jobId\n\tNative Spark Jobs:\n$str")
     Future.value(response)
   }
 
@@ -88,13 +88,13 @@ class SparkServerService extends Service[http.Request, http.Response] {
     * @param request
     * @return
     */
-  def processPI(request : http.Request) : Future[http.Response] = {
+  def doRunJob(request : http.Request) : Future[http.Response] = {
 
-    val pi_params = getParams(request)
-    val job_ID = SparkServerImpl.createJob(classOf[MonteCarloPI], None, pi_params)
+    val jobUniqueName = request.getParam("id").toString
+    val params = getParams(request)
+    val jobId = SparkServerImpl.createJob(jobUniqueName, None, params)
     val response = http.Response(request.version, http.Status.Ok)
-    response.write("Server Job ID: " + job_ID)
-
+    response.write("Server Job ID: " + jobId)
     Future.value(response)
   }
 }

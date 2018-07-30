@@ -4,8 +4,8 @@ import com.twitter.util._
 
 object SparkServerMain extends App {
 
-  val my_service = new SparkServerService()
-  val server = Http.serve(":8080", my_service)
+  val myService = new SparkServerService()
+  val server = Http.serve(":8080", myService)
 
   Await.ready(server)
 }

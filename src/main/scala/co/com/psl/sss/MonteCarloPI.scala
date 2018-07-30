@@ -4,13 +4,13 @@ import org.apache.spark.sql.SparkSession
 
 import scala.util.Random
 
-class MonteCarloPI(val num_points : Int) extends SparkJob {
+class MonteCarloPI(val numPoints : Int) extends SparkJob {
 
   override def main(sparkSession: SparkSession): Unit = {
 
-    val rdd = sparkSession.sparkContext.parallelize(Array.ofDim[Byte](num_points))
+    val rdd = sparkSession.sparkContext.parallelize(Array.ofDim[Byte](numPoints))
 
-    val positive_points = rdd
+    val positivePoints = rdd
       .map(_ => {
         val x = Random.nextFloat()
         val y = Random.nextFloat()
@@ -18,9 +18,9 @@ class MonteCarloPI(val num_points : Int) extends SparkJob {
       })
       .reduce((a, b) => a+b)
 
-    val approx_PI = positive_points/num_points.toFloat*4.0
-    println(approx_PI)
+    val approxPI = positivePoints/numPoints.toFloat*4.0
+    println(approxPI)
   }
 
-  override def name(): String = "Monte Carlo PI"
+  override def name(): String = "PI"
 }

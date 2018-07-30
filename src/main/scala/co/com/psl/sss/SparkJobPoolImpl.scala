@@ -5,55 +5,53 @@ import scala.collection.mutable.HashMap
 
 /**
   *
-  * @param job_id
+  * @param jobId
   * @param name
-  * @param job_thread
+  * @param jobThread
   */
-case class SparkJobUnit(val job_id : Int, val name : String, val job_thread : Thread)
+case class SparkJobUnit(val jobId : Int, val name : String, val jobThread : Thread)
 
 /**
   *
-  * @param spark_server_context
+  * @param sparkServerContext
   */
-class SparkJobPoolImpl(val spark_server_context : SparkServerContext) extends SparkJobPool {
+class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends SparkJobPool {
 
   val pool = HashMap[Int, SparkJobUnit]()
 
   /**
     *
-    * @param spark_job
+    * @param sparkJob
     * @return
     */
-  override def start(spark_job: SparkJob): Int = {
-
-    var job_id = -1
+  override def start(sparkJob: SparkJob): Int = {
 
     pool.synchronized {
-      job_id = pool.size + 1
+      val jobId = pool.size + 1
 
-      val job_thread = new Thread {
+      val jobThread = new Thread {
         override def run(): Unit = {
-          spark_server_context.spark_context.setJobGroup(job_id+"", "", true)
-          spark_job.main(spark_server_context.spark_session)
+          sparkServerContext.sparkContext.setJobGroup(jobId.toString, "", true)
+          sparkJob.main(sparkServerContext.sparkSession)
         }
       }
-      val job_unit = SparkJobUnit(job_id, spark_job.name, job_thread)
-      pool.put(job_id, job_unit)
-      job_thread.start()
+      val jobUnit = SparkJobUnit(jobId, sparkJob.name, jobThread)
+      pool.put(jobId, jobUnit)
+      jobThread.start()
+      jobId
     }
-    job_id
   }
 
   /**
     *
-    * @param job_ID
+    * @param jobId
     */
-  override def stop(job_ID: Int): Unit = synchronized {
+  override def stop(jobId: Int): Unit = synchronized {
 
-    if (!pool.contains(job_ID)) {
-      throw new IllegalArgumentException("Job ID not found")
+    if (!pool.contains(jobId)) {
+      throw new IllegalArgumentException("Job Id not found")
     }
-    spark_server_context.spark_context.cancelJobGroup(job_ID+"")
+    sparkServerContext.sparkContext.cancelJobGroup(jobId.toString)
   }
 
   /**
@@ -66,17 +64,17 @@ class SparkJobPoolImpl(val spark_server_context : SparkServerContext) extends Sp
 
   /**
     *
-    * @param job_ID
+    * @param jobId
     * @return
     */
-  override def getNativeSparkJobs(job_ID : Int): Seq[SparkJobInfo] = {
+  override def getNativeSparkJobs(jobId : Int): Seq[SparkJobInfo] = {
 
-    if (!pool.contains(job_ID)) {
+    if (!pool.contains(jobId)) {
       throw new IllegalArgumentException("Job ID not found")
     }
-    val statusTracker = spark_server_context.spark_context.statusTracker
+    val statusTracker = sparkServerContext.sparkContext.statusTracker
 
-    for ( id <- statusTracker.getJobIdsForGroup(job_ID+"").toSeq)
+    for ( id <- statusTracker.getJobIdsForGroup(jobId.toString).toSeq)
       yield statusTracker.getJobInfo(id).get
   }
 }

@@ -9,16 +9,16 @@ trait SparkJobPool {
 
   /**
     *
-    * @param spark_job
+    * @param sparkJob
     * @return
     */
-  def start(spark_job : SparkJob) : Int
+  def start(sparkJob : SparkJob) : Int
 
   /**
     *
-    * @param spark_job_ID
+    * @param sparkJobId
     */
-  def stop(spark_job_ID : Int) : Unit
+  def stop(sparkJobId : Int) : Unit
 
   /**
     *
@@ -28,8 +28,8 @@ trait SparkJobPool {
 
   /**
     *
-    * @param job_id
+    * @param jobId
     * @return
     */
-  def getNativeSparkJobs(job_id : Int) : Seq[SparkJobInfo]
+  def getNativeSparkJobs(jobId : Int) : Seq[SparkJobInfo]
 }
