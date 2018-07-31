@@ -68,4 +68,10 @@ trait SparkServer {
     * @return
     */
   def queryJob(jobId : Int) : Seq[SparkJobInfo]
+
+  /**
+    *
+    * @return
+    */
+  def status : Int
 }

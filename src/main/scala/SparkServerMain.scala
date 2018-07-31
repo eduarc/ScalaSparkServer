@@ -1,12 +1,11 @@
 import co.com.psl.sss.{SparkServerImpl, SparkServerService}
-import com.twitter.finagle._
-import com.twitter.util._
+import com.twitter.finagle.Http
+import com.twitter.util.Await
 
 object SparkServerMain extends App {
 
-  val myService = new SparkServerService(SparkServerImpl)
+  val myService = new SparkServerService(new SparkServerImpl)
   val server = Http.serve(":8080", myService)
 
   Await.ready(server)
 }
-

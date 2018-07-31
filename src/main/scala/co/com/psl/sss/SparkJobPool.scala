@@ -10,9 +10,10 @@ trait SparkJobPool {
   /**
     *
     * @param sparkJob
+    * @param sync
     * @return
     */
-  def start(sparkJob : SparkJob) : Int
+  def start(sparkJob : SparkJob, sync : Boolean = false) : Int
 
   /**
     *

@@ -47,7 +47,7 @@ class SparkServerService(val sparkServer : SparkServer) extends Service[http.Req
 
     val sparkConf = getParams(request)
     sparkServer.init(sparkConf)
-      // Register other Jobs Here!
+    // Register other Jobs Here!
     sparkServer.registerJob("pi", new MonteCarloPIBuilder)
     Future.value(http.Response(request.version, http.Status.Ok))
   }

@@ -22,24 +22,27 @@ class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends Spar
   /**
     *
     * @param sparkJob
+    * @param sync
     * @return
     */
-  override def start(sparkJob: SparkJob): Int = {
+  override def start(sparkJob: SparkJob, sync : Boolean = false): Int = synchronized {
 
-    pool.synchronized {
-      val jobId = pool.size + 1
+    val jobId = pool.size + 1
 
-      val jobThread = new Thread {
-        override def run(): Unit = {
-          sparkServerContext.sparkContext.setJobGroup(jobId.toString, "", true)
-          sparkJob.main(sparkServerContext.sparkSession)
-        }
+    val jobThread = new Thread {
+      override def run(): Unit = {
+        sparkServerContext.sparkContext.setJobGroup(jobId.toString, "", true)
+        sparkJob.main(sparkServerContext.sparkSession)
       }
-      val jobUnit = SparkJobUnit(jobId, sparkJob.name, jobThread)
-      pool.put(jobId, jobUnit)
-      jobThread.start()
-      jobId
     }
+    val jobUnit = SparkJobUnit(jobId, sparkJob.name, jobThread)
+    pool.put(jobId, jobUnit)
+    jobThread.start()
+
+    if (sync) {
+      jobThread.join()
+    }
+    jobId
   }
 
   /**
@@ -58,7 +61,7 @@ class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends Spar
     *
     * @return
     */
-  override def getAllJobsIDs(): Seq[Int] = {
+  override def getAllJobsIDs(): Seq[Int] = synchronized {
     pool.keySet.toSeq
   }
 
