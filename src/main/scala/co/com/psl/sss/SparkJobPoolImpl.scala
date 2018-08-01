@@ -30,7 +30,7 @@ class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends Spar
     * @return
     */
   override def start(sparkJob: SparkJob, sync : Boolean = false): Int = {
-    nextJobId.
+    
     val jobId = nextJobId.getAndIncrement()
 
     val jobThread = new Thread {
