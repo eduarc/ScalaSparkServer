@@ -21,12 +21,13 @@ class SparkServerImpl extends SparkServer {
   override def init(config : Traversable[(String, String)]): Unit = {
 
     if (serverStatus.compareAndSet(SparkServer.Status.SHUTDOWN, SparkServer.Status.RUNNING)) {
+      val sparkConfig: SparkConf = new SparkConf().setAll(config)
+      val sparkSession: SparkSession = SparkSession.builder().config(sparkConfig).getOrCreate()
+      sparkServerContext = Option(SparkServerContext(sparkConfig, sparkSession, sparkSession.sparkContext))
+      jobPool = Option(new SparkJobPoolImpl(sparkServerContext.get))
+    } else {
       throw new IllegalStateException("Server must be not running")
     }
-    val sparkConfig: SparkConf = new SparkConf().setAll(config)
-    val sparkSession: SparkSession = SparkSession.builder().config(sparkConfig).getOrCreate()
-    sparkServerContext = Option(SparkServerContext(sparkConfig, sparkSession, sparkSession.sparkContext))
-    jobPool = Option(new SparkJobPoolImpl(sparkServerContext.get))
   }
 
   /**
@@ -34,13 +35,14 @@ class SparkServerImpl extends SparkServer {
     */
   override def shutdown(): Unit = {
 
-    if (!serverStatus.compareAndSet(SparkServer.Status.RUNNING, SparkServer.Status.SHUTDOWN)) {
+    if (serverStatus.compareAndSet(SparkServer.Status.RUNNING, SparkServer.Status.SHUTDOWN)) {
+      jobPool.get.getAllJobsIDs().foreach(killJob)
+      sparkServerContext.get.sparkSession.stop()
+      jobPool = None
+      sparkServerContext = None
+    } else {
       throw new IllegalStateException("Server must be running to be finished")
     }
-    jobPool.get.getAllJobsIDs().foreach(killJob)
-    sparkServerContext.get.sparkSession.stop()
-    jobPool = None
-    sparkServerContext = None
   }
 
   /**
