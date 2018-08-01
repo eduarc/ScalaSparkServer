@@ -1,7 +1,10 @@
 package co.com.psl.sss
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import org.apache.spark.SparkJobInfo
-import scala.collection.mutable.HashMap
+
+import scala.collection.concurrent.TrieMap
 
 /**
   *
@@ -17,7 +20,8 @@ case class SparkJobUnit(val jobId : Int, val name : String, val jobThread : Thre
   */
 class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends SparkJobPool {
 
-  val pool = HashMap[Int, SparkJobUnit]()
+  val pool = TrieMap[Int, SparkJobUnit]()
+  val nextJobId = new AtomicInteger
 
   /**
     *
@@ -25,9 +29,9 @@ class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends Spar
     * @param sync
     * @return
     */
-  override def start(sparkJob: SparkJob, sync : Boolean = false): Int = synchronized {
-
-    val jobId = pool.size + 1
+  override def start(sparkJob: SparkJob, sync : Boolean = false): Int = {
+    nextJobId.
+    val jobId = nextJobId.getAndIncrement()
 
     val jobThread = new Thread {
       override def run(): Unit = {
@@ -49,7 +53,7 @@ class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends Spar
     *
     * @param jobId
     */
-  override def stop(jobId: Int): Unit = synchronized {
+  override def stop(jobId: Int): Unit = {
 
     if (!pool.contains(jobId)) {
       throw new IllegalArgumentException("Job Id not found")
@@ -61,7 +65,7 @@ class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends Spar
     *
     * @return
     */
-  override def getAllJobsIDs(): Seq[Int] = synchronized {
+  override def getAllJobsIDs(): Seq[Int] = {
     pool.keySet.toSeq
   }
 

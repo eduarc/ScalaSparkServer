@@ -8,9 +8,8 @@ import org.apache.spark.SparkJobInfo
 object SparkServer {
 
   object Status {
-    val CREATED : Int = 0
+    val SHUTDOWN : Int = 0
     val RUNNING : Int = 1
-    val FINISHED : Int = 2
   }
 }
 

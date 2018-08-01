@@ -1,49 +1,46 @@
 package co.com.psl.sss
 
-import org.apache.spark.{SparkConf, SparkContext, SparkJobInfo}
+import java.util.concurrent.atomic.AtomicInteger
+
+import org.apache.spark.{SparkConf, SparkJobInfo}
 import org.apache.spark.sql.SparkSession
 
-import scala.collection.mutable.HashMap
+import scala.collection.concurrent.TrieMap
 
 class SparkServerImpl extends SparkServer {
 
-  var serverStatus = SparkServer.Status.CREATED
+  var serverStatus = new AtomicInteger(SparkServer.Status.SHUTDOWN)
   var sparkServerContext : Option[SparkServerContext] = None
-  val registeredJobBuilders : HashMap[String, SparkJobBuilder] = HashMap()
+  val registeredJobBuilders = new  TrieMap[String, SparkJobBuilder]
   private var jobPool : Option[SparkJobPool] = None
 
   /**
-    *
+    * Synchronized to avoid multiple initializations
     * @param config
     */
-  override def init(config : Traversable[(String, String)]): Unit = synchronized {
+  override def init(config : Traversable[(String, String)]): Unit = {
 
-    if (serverStatus == SparkServer.Status.RUNNING) {
-      throw new IllegalStateException("Server must be not running or finished")
+    if (serverStatus.compareAndSet(SparkServer.Status.SHUTDOWN, SparkServer.Status.RUNNING)) {
+      throw new IllegalStateException("Server must be not running")
     }
-    sparkServerContext = Option(new SparkServerContext {
-      override val sparkConfig: SparkConf = new SparkConf()
-      sparkConfig.setAll(config)
-      override val sparkSession: SparkSession = SparkSession.builder().config(sparkConfig).getOrCreate()
-      override val sparkContext: SparkContext = sparkSession.sparkContext
-    })
+    val sparkConfig: SparkConf = new SparkConf().setAll(config)
+    val sparkSession: SparkSession = SparkSession.builder().config(sparkConfig).getOrCreate()
+    sparkServerContext = Option(SparkServerContext(sparkConfig, sparkSession, sparkSession.sparkContext))
     jobPool = Option(new SparkJobPoolImpl(sparkServerContext.get))
-    serverStatus = SparkServer.Status.RUNNING
   }
 
   /**
     *
     */
-  override def shutdown(): Unit = synchronized {
+  override def shutdown(): Unit = {
 
-    if (serverStatus != SparkServer.Status.RUNNING) {
+    if (!serverStatus.compareAndSet(SparkServer.Status.RUNNING, SparkServer.Status.SHUTDOWN)) {
       throw new IllegalStateException("Server must be running to be finished")
     }
     jobPool.get.getAllJobsIDs().foreach(killJob)
     sparkServerContext.get.sparkSession.stop()
     jobPool = None
     sparkServerContext = None
-    serverStatus = SparkServer.Status.FINISHED
   }
 
   /**
@@ -76,11 +73,12 @@ class SparkServerImpl extends SparkServer {
   override def createJob(jobUniqueName : String,
                           configs : Iterable[(String, String)],
                           args : Iterable[(String, String)]): Int = {
-
-    val builder = registeredJobBuilders(jobUniqueName)
-    val new_job = builder.configs(configs).params(args).build()
     jobPool match {
-      case Some(x) => x.start(new_job)
+      case Some(x) => {
+        val builder = registeredJobBuilders(jobUniqueName)
+        val newJob = builder.configs(configs).params(args).build()
+        x.start(newJob)
+      }
       case None => throw new IllegalStateException("Server must initiated before launching tasks")
     }
   }
@@ -108,5 +106,5 @@ class SparkServerImpl extends SparkServer {
     *
     * @return
     */
-  override def status: Int = serverStatus
+  override def status: Int = serverStatus.get()
 }

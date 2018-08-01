@@ -10,6 +10,9 @@ import com.twitter.util.Future
   */
 class SparkServerService(val sparkServer : SparkServer) extends Service[http.Request, http.Response] {
 
+  // Register other Jobs Here!
+  sparkServer.registerJob("pi", new MonteCarloPIBuilder)
+
   /**
     *
     * @param request
@@ -47,8 +50,6 @@ class SparkServerService(val sparkServer : SparkServer) extends Service[http.Req
 
     val sparkConf = getParams(request)
     sparkServer.init(sparkConf)
-    // Register other Jobs Here!
-    sparkServer.registerJob("pi", new MonteCarloPIBuilder)
     Future.value(http.Response(request.version, http.Status.Ok))
   }
 

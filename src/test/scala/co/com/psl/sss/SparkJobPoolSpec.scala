@@ -11,15 +11,14 @@ class SparkJobPoolSpec extends FlatSpec {
     *
     */
   trait FixtureSparkJobPool {
-    val fixtureSparkServerContext = new SparkServerContext {
-      override val sparkConfig: SparkConf = new SparkConf()
-      sparkConfig.set("spark.master", "local")
-      override val sparkSession: SparkSession = SparkSession
-        .builder()
-        .config(sparkConfig)
-        .getOrCreate()
-      override val sparkContext: SparkContext = sparkSession.sparkContext
-    }
+
+    val sparkConfig: SparkConf = new SparkConf()
+    sparkConfig.set("spark.master", "local")
+    val sparkSession: SparkSession = SparkSession
+      .builder()
+      .config(sparkConfig)
+      .getOrCreate()
+    val fixtureSparkServerContext = SparkServerContext(sparkConfig,sparkSession, sparkSession.sparkContext)
     val sparkJobPool = new SparkJobPoolImpl(fixtureSparkServerContext)
   }
 

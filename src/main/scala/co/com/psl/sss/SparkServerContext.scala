@@ -6,21 +6,20 @@ import org.apache.spark.sql.SparkSession
 /**
   *
   */
-trait SparkServerContext {
+case class SparkServerContext(
 
   /**
     *
     */
-  val sparkConfig : SparkConf
+  val sparkConfig : SparkConf,
 
   /**
     *
     */
-  val sparkSession : SparkSession
+  val sparkSession : SparkSession,
 
   /**
     *
     */
   val sparkContext : SparkContext
-
-}
+)
