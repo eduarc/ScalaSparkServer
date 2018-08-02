@@ -4,6 +4,7 @@ import org.apache.spark.scheduler.{SparkListener, SparkListenerJobEnd, SparkList
 import org.apache.spark.{JobExecutionStatus, SparkConf, SparkContext}
 import org.apache.spark.sql.SparkSession
 import org.scalatest.FlatSpec
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class SparkJobPoolSpec extends FlatSpec {
 

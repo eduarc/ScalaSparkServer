@@ -5,14 +5,16 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.apache.spark.SparkJobInfo
 
 import scala.collection.concurrent.TrieMap
-
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 /**
   *
   * @param jobId
   * @param name
   * @param jobThread
   */
-case class SparkJobUnit(val jobId : Int, val name : String, val jobThread : Thread)
+case class SparkJobUnit(val jobId : Int, val name : String, val jobFuture : Future[Unit])
 
 /**
   *
@@ -29,22 +31,18 @@ class SparkJobPoolImpl(val sparkServerContext : SparkServerContext) extends Spar
     * @param sync
     * @return
     */
-  override def start(sparkJob: SparkJob, sync : Boolean = false): Int = {
+  override def start(sparkJob: SparkJob, sync : Boolean = false)(implicit ec: ExecutionContext): Int = {
 
     val jobId = nextJobId.getAndIncrement()
-
-    val jobThread = new Thread {
-      override def run(): Unit = {
-        sparkServerContext.sparkContext.setJobGroup(jobId.toString, "", true)
-        sparkJob.main(sparkServerContext.sparkSession)
-      }
+    val jobFuture = Future[Unit] {
+      sparkServerContext.sparkContext.setJobGroup(jobId.toString, "", true)
+      sparkJob.main(sparkServerContext.sparkSession)
     }
-    val jobUnit = SparkJobUnit(jobId, sparkJob.name, jobThread)
+    val jobUnit = SparkJobUnit(jobId, sparkJob.name, jobFuture)
     pool.put(jobId, jobUnit)
-    jobThread.start()
 
     if (sync) {
-      jobThread.join()
+      Await.ready(jobFuture, ((1L<<63)-1).nanoseconds)
     }
     jobId
   }

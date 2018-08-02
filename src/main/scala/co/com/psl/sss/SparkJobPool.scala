@@ -2,6 +2,8 @@ package co.com.psl.sss
 
 import org.apache.spark.SparkJobInfo
 
+import scala.concurrent.ExecutionContext
+
 /**
   *
   */
@@ -13,7 +15,7 @@ trait SparkJobPool {
     * @param sync
     * @return
     */
-  def start(sparkJob : SparkJob, sync : Boolean = false) : Int
+  def start(sparkJob : SparkJob, sync : Boolean = false)(implicit ec: ExecutionContext) : Int
 
   /**
     *

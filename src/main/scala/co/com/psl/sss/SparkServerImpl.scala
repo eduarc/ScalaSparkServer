@@ -6,6 +6,7 @@ import org.apache.spark.{SparkConf, SparkJobInfo}
 import org.apache.spark.sql.SparkSession
 
 import scala.collection.concurrent.TrieMap
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class SparkServerImpl extends SparkServer {
 
