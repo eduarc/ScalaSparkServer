@@ -1,0 +1,5 @@
+curl -D - "localhost:8080/init?spark.master=local&spark.app.name=SparkServer"
+curl -D - localhost:8080/pi?n=200000000
+curl -D - localhost:8080/queryjob?id=1
+curl -D - localhost:8080/killjob?id=1
+curl -D - localhost:8080/queryjob?id=1
